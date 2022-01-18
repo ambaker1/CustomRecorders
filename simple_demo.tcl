@@ -96,7 +96,10 @@ recorder Element -file eleLocal.out -time -ele 1 2 3  basicForces
 ################################################################################
 # Get basic files with steps and analysis time
 set count 0
-recorder Custom -file steps.out {incr count}
+recorder Custom -file steps.out {
+    upvar 1 count i
+    incr i
+}
 recorder Custom -file time.out {getTime}
 
 # Get convergence info
@@ -104,6 +107,7 @@ recorder Custom -file test_stats.out {list [testIter] {*}[testNorms]}
 
 # Use conditional expressions
 recorder Custom -file even.out -format %s {
+    global count
     if {$count % 2 == 0} {
         return yes
     } else {
@@ -114,6 +118,7 @@ recorder Custom -file even.out -format %s {
 # Perform puts to screen and also write separate values to file.
 set message "Hello World"
 recorder Custom -file custom.out -time {
+    global message
     if {[getTime] > 0.5} {
         puts $message
         return 1
@@ -151,5 +156,3 @@ puts [recorderValue $recTag1 6 2]
 puts [recorderValue $recTag2 6]
 puts [recorderValue $recTag2 6 1]
 puts [recorderValue $recTag2 6 2]
-
-
