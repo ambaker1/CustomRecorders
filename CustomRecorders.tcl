@@ -156,7 +156,7 @@ proc ::CustomRecorders::remove {type args} {
 # -time:                Include "time" as first column
 # -precision $nSD:      Set number of significant digits for output (default 6)
 # -format $fmt:         Format for each value. Default %.${precision}g
-# body:                 Body of custom recorder (evaluated like a proc)
+# body:                 Body of custom recorder (evaluated as a lambda in ::)
 
 proc ::CustomRecorders::CustomRecorder {args} {
     # Create a custom recorder
@@ -220,7 +220,7 @@ proc ::CustomRecorders::CustomRecorder {args} {
     # Open recorder file and save data.
     incr crTag -1; # Update custom recorder tag
     dict set crData $crTag fid $fid
-    dict set crData $crTag body $body
+    dict set crData $crTag lambda [list apply [list args $body]]
     dict set crData $crTag includeTime $includeTime
     dict set crData $crTag data ""
     dict set crData $crTag format $format
@@ -261,10 +261,9 @@ proc ::CustomRecorders::CustomRecord {args} {
     # Run through all custom recorders, puts to file and update values.
     variable crData
     dict for {recorderTag subDict} $crData {
-        # Evaluate script in global, and get values specified from script.
-        # Can use "return" like in a procedure or a sourced file.
-        set code [catch {uplevel "\#0" [dict get $subDict body]} result error]
-        if {$code == 0 || $code == 2} {
+        # Evaluate lambda in global, catching to ensure no funny business
+        set code [catch {uplevel "\#0" [dict get $subDict lambda]} result error]
+        if {$code == 0} {
             set values $result
         } elseif {$code == 1} {
             return -code error \
@@ -445,4 +444,4 @@ proc ::CustomRecorders::CloseCustomRecorders {args} {
 namespace import ::CustomRecorders::*
 
 # Finally, provide the package
-package provide CustomRecorders 1.0
+package provide CustomRecorders 1.1

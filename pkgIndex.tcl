@@ -1,1 +1,1 @@
-package ifneeded CustomRecorders 1.0 [list source [file join $dir CustomRecorders.tcl]]
+package ifneeded CustomRecorders 1.1 [list source [file join $dir CustomRecorders.tcl]]
