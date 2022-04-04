@@ -38,34 +38,28 @@ namespace eval ::CustomRecorders {
     # Traced commands
     # Traced OpenSees commands are not modified, but are traced so that
     # the custom recorders are affected when they are called.
+    trace add execution ::analyze leave ::CustomRecorders::TraceAnalyze
     trace add execution ::record leave ::CustomRecorders::CustomRecord
     trace add execution ::wipe leave ::CustomRecorders::CloseCustomRecorders
     
     # Wrapped/Exported commands
     # Wrapped OpenSees commands are renamed, saved as "Real_*" in the
     # CustomRecorder namespace. Then, the equivalent commands are exported. 
-    foreach command {analyze remove recorder recorderValue} {
+    foreach command {remove recorder recorderValue} {
         rename ::$command ::CustomRecorders::Real_$command
         namespace export $command
     }
 }
 
-# analyze --
+# TraceAnalyze --
 # 
-# Wrapped analyze command to update custom recorders after each successful step.
+# Call CustomRecord after every successful "analyze".
 
-proc ::CustomRecorders::analyze {numIncr args} {
-    # Loop through number of analysis steps.
-    for {set i 0} {$i < $numIncr} {incr i} {
-        set ok [Real_analyze 1 {*}$args]
-        if {$ok == 0} {
-            CustomRecord
-        } else {
-            break
-        }
+proc ::CustomRecorder::TraceAnalyze {cmdString code result opts} {
+    if {$code == 0 && $result == 0} {
+        CustomRecord
     }
-    # Return the analysis code to user.
-    return $ok
+    return $result
 }
 
 # recorder --
